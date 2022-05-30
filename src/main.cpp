@@ -1,10 +1,13 @@
 #include <iostream>
 #include <memory>
+#include <conio.h>
 #include "network_impl.h"
 #include "stream_buffer.h"
+#include "session.h"
 
 namespace tcp
 {
+// 내부 상태 로깅을 위해 net::ILogging 인터페이스 구현
 class NetworkLogging : public net::ILogging
 {
 public:
@@ -34,10 +37,12 @@ public:
 	}
 };
 
+// 클라이언트 기능 구현
 class GameClient : public net::IListener, private boost::noncopyable
 {
 	using _controller_t = std::unique_ptr<net::IController>;
 
+	// 클라이언트 설정 정보
 	class Configuration : public net::IConfiguration
 	{
 	public:
@@ -93,8 +98,6 @@ public:
 	{
 		std::cout << __FUNCTION__ << std::endl;
 
-		//auto buf = std::make_shared<uint8_t>(new uint8_t[100]);
-		// 2. 완료된 패킷을 콜백에 올려준다.
 		std::shared_ptr<uint8_t> buf(
 			new uint8_t[100],
 			[](uint8_t* pointer) {
@@ -131,8 +134,10 @@ private:
 	Configuration m_configuration;
 };
 
+// TCP 서버 기능 구현
 class GameServer : public net::IListener, private boost::noncopyable
 {
+	// 설정 정보 
 	class Configuration : public net::IConfiguration
 	{
 	public:
@@ -147,12 +152,12 @@ class GameServer : public net::IListener, private boost::noncopyable
 		// Socket 옵션(optional을 사용하여 nullopt가 아닐 경우에만 해당 옵션을 적용하도록 한다.)
 		virtual _boolopt_t Reuse() override 
 		{
-			return std::nullopt;
+			return _boolopt_t(true);
 		}
 
 		virtual _sizeopt_t MMS() override
 		{
-			return std::nullopt;
+			return _sizeopt_t(102400);
 		}
 
 		virtual _lingeropt_t Linger() override
@@ -162,18 +167,19 @@ class GameServer : public net::IListener, private boost::noncopyable
 
 		virtual _boolopt_t Nagle() override
 		{
-			return std::nullopt;
+			return _boolopt_t(false);
 		}
 
 		virtual _boolopt_t Keepalive() override
 		{
-			return std::nullopt;
+			return _boolopt_t(false);
 		}
 	};
 
 public:
 	using _controller_t = std::unique_ptr<net::IController>;
 
+	// 워커 쓰레드 2개로 서버 생성
 	GameServer()
 		: m_controller(new net::NetworkImpl(2))
 	{
@@ -220,60 +226,8 @@ private:
 };
 }
 
-void heapify(int32_t* arr, int32_t maxLength, int32_t index)
-{
-	// Root 노드
-	int32_t largest = index;
-	
-	// Root 노드의 왼쪽 자식 노드
-	int32_t left = 2 * index + 1;
-
-	// Root 노드의 오른쪽 자식 노드
-	int32_t right = 2 * index + 2;
-
-	// 왼쪽 자식 노드가 존재한다면 값을 비교 후 충족된다면 largest 변경
-	if (left < maxLength && arr[left] > arr[largest])
-	{
-		largest = left;
-	}
-
-	if (right < maxLength && arr[right] > arr[largest])
-	{
-		largest = right;
-	}
-
-	// index의 값이 변경됐다면... 
-	if (largest != index)
-	{
-		std::swap(arr[index], arr[largest]);
-
-		heapify(arr, maxLength, largest);
-	}
-}
-
-void heapSort(int32_t* arr, int32_t maxLength)
-{
-	// 값을 정렬한다.
-	for (int32_t i = maxLength / 2 - 1; i >= 0; --i)
-	{
-		heapify(arr, maxLength, i);
-	}
-
-	std::vector<int32_t> sorted;
-
-	// 정렬한다.
-	for (int32_t i = maxLength - 1; i >= 0; --i)
-	{
-		std::swap(arr[0], arr[i]);
-
-		heapify(arr, i, 0); // root 를 변경(인덱스 0이 루트다)
-	}
-}
-
-//#define _CLIENT
-#include "session.h"
-
 /*
+// configuration.json
 {
 	"address": {
 		"address":"127.0.0.1",
@@ -324,28 +278,16 @@ int main(int argc, char* argv[])
 	}
 
 
-	getchar();
-
-#ifdef _CLIENT
-	std::unique_ptr<net::IController> controller(new net::NetworkImpl(1));
-	auto service = std::make_shared<tcp::NetworkService>();
-	service->m_controller = controller.get();
-
-	controller->AttachService(std::static_pointer_cast<net::IListener>(service));
-	
-	controller->Connect("127.0.0.1", "20195");
+	while (1)
 	{
-		std::cout << "connecting..." << std::endl;
+		std::cout << "\n\nPlease press 'Q' key for quit..." << std::endl;
+
+		auto ch = _getch();
+		if (ch == 'Q' || ch == 'q')
+		{
+			break; // 종료
+		}
 	}
-
-	getchar();
-#else
-	//tcp::GameServer gameserver;
-	//gameserver.GetConroller()->Accept("127.0.0.1", "20195");
-
-    getchar();
-#endif
-	
 
 	return 0;
 }
