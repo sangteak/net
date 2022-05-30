@@ -3,10 +3,10 @@
 #include <iostream>
 #include <array>
 
-template <std::size_t DefaultCapacity = 1024>
+template <int32_t DefaultCapacity = 1024>
 class StreamBuffer 
 {
-    static constexpr int INITIAL_VALUE = -1;
+    static constexpr int32_t INITIAL_VALUE = -1;
     
 public:
     StreamBuffer()
@@ -26,7 +26,7 @@ public:
         }
     }
     
-    std::size_t GetLength() 
+    int32_t GetLength() 
     {
         if (INITIAL_VALUE == m_front)
         {
@@ -55,7 +55,7 @@ public:
         }
 
         // 한바퀴 돌지 않았을 경우
-        int availableSpace = 0;
+        int32_t availableSpace = 0;
         if (m_front < m_rear)
         {
             availableSpace = m_capacity - (m_rear - m_front);
@@ -85,7 +85,7 @@ public:
     }
     
     // Adding an element
-    void Write(const uint8_t* t_data, std::size_t t_length)
+    void Write(const uint8_t* t_data, const int32_t t_length)
     {
         // 공간이 부족하다면 여기서 충분히 할당하도록 한다.
         if (IsFull(t_length))
@@ -117,7 +117,7 @@ public:
             split[1] = t_length - split[0];
         }
 
-        int offset = 0;
+        int32_t offset = 0;
         for (auto& n : split)
         {
             if (n <= 0)
@@ -134,7 +134,7 @@ public:
 
     
 
-    bool Read(uint8_t* t_data, std::size_t t_length)
+    bool Read(uint8_t* t_data, const int32_t t_length)
     {
         if (IsEmpty())
         {
@@ -173,7 +173,7 @@ public:
             // 실제 복사되어야할 크기로 조정
             split[1] = t_length - split[0];
             
-            int offset = 0;
+            int32_t offset = 0;
             for (auto& n : split)
             {
                 if (n <= 0)
@@ -188,7 +188,7 @@ public:
         return true;
     }
 
-    void Consume(std::size_t t_length)
+    void Consume(const int32_t t_length)
     {
         if (IsEmpty())
         {
@@ -239,7 +239,7 @@ public:
         }
     }
 
-    bool ReadAndConsume(uint8_t* t_data, std::size_t t_length)
+    bool ReadAndConsume(uint8_t* t_data, const int32_t t_length)
     {
         if (IsEmpty())
         {
@@ -247,7 +247,6 @@ public:
         }
 
         // 한바퀴 돌지 않았을 경우
-        int dataLength = 0;
         std::array<int, 2> split;
         if (m_front < m_rear)
         {
@@ -278,7 +277,7 @@ public:
             // 실제 복사되어야할 크기로 조정
             split[1] = t_length - split[0];
 
-            int offset = 0;
+            int32_t offset = 0;
             for (auto& n : split)
             {
                 if (n <= 0)
@@ -301,7 +300,7 @@ public:
 private:
     void Grow()
     {
-        int capacity = m_capacity << 1; // 2배!! 엄청 증가하지 않겠지.... 모니터링 필요함.
+        int32_t capacity = m_capacity << 1; // 2배!! 엄청 증가하지 않겠지.... 모니터링 필요함.
 
         uint8_t* buffer = new uint8_t[capacity];
         
@@ -318,7 +317,7 @@ private:
             split[1] = m_rear;
         }
 
-        int offset = 0;
+        int32_t offset = 0;
         for (auto& n : split)
         {
             if (n <= 0)
@@ -349,7 +348,7 @@ private:
 };
 
 /*
-int main() {
+int32_t main() {
     Queue q;
 
     // Fails because front = -1
@@ -366,7 +365,7 @@ int main() {
 
     q.display();
 
-    int elem = q.deQueue();
+    int32_t elem = q.deQueue();
 
     if (elem != -1)
         cout << endl

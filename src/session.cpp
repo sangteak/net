@@ -6,7 +6,7 @@
 namespace net
 {
 #pragma region R_SESSION
-Session::Session(const _sid_t& t_sid, _io_context_t& t_ioContext, IService* t_service, ILogging* t_logging, IMonitor* t_monitor, _destroy_callback_t&& t_destroyCallback)
+Session::Session(const _sid_t& t_sid, _io_context_t& t_ioContext, IListener* t_service, ILogging* t_logging, IMonitor* t_monitor, _destroy_callback_t&& t_destroyCallback)
 	: m_sid(t_sid)
 	, m_ioContext(t_ioContext)
 	, m_strand(boost::asio::make_strand(t_ioContext))
@@ -139,10 +139,10 @@ void Session::HandleRead(const boost::system::error_code& t_errorCode, std::size
 		return;
 	}
 
-	m_messageBuffer.Write(m_readBuffer.data(), t_bytesTransferred);
+	m_messageBuffer.Write(m_readBuffer.data(), static_cast<int32_t>(t_bytesTransferred));
 	
 	uint8_t header[4] = { 0, };
-	std::size_t headerSize = sizeof(header);
+	auto headerSize = static_cast<int32_t>(sizeof(header));
 
 	m_messageBuffer.Read(header, headerSize);
 	auto dataLength = *((int32_t*)header);
@@ -330,7 +330,7 @@ void Session::Log(const eLogLevel& t_level, const char* function, const int32_t 
 #pragma endregion R_SESSION
 
 #pragma region R_SESSION_MANAGER
-bool SessionManager::Create(_io_context_t& t_ioContext, IService* t_service, ILogging* t_logging, IMonitor* t_monitor, _session_ptr_t& t_session)
+bool SessionManager::Create(_io_context_t& t_ioContext, IListener* t_service, ILogging* t_logging, IMonitor* t_monitor, _session_ptr_t& t_session)
 {
 	_sid_t sid = GeneratedSID();
 

@@ -42,7 +42,7 @@ public:
 		return "exception";
 	}
 	// Return what each enum means in text
-	virtual std::string message(int c) const override final
+	virtual std::string message(int /*c*/) const override final
 	{
 		return m_message;
 	}

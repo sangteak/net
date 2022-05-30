@@ -31,14 +31,14 @@ class IWriteBuffer
 public:
 	virtual bool IsEmpty() = 0;
 	virtual const uint8_t* GetData() = 0;
-	virtual int32_t GetLength() = 0;
-	virtual std::size_t Put(const void* data, const int32_t& length) = 0;
+	virtual size_t GetLength() = 0;
+	virtual size_t Put(const void* data, const size_t& length) = 0;
 	virtual void Commit() = 0;
 };
 using _write_buffer_ptr_t = std::shared_ptr<IWriteBuffer>;
 
 // 서비스에 필요한 콜백을 정의합니다.
-class IService
+class IListener
 {
 public:
 	virtual void OnConnected(const _sid_t& sid) = 0;
@@ -46,7 +46,7 @@ public:
 	virtual void OnMessage(const _sid_t& sid, const uint8_t* data, const std::size_t& len) = 0;
 	virtual void OnError(const _sid_t& sid, const boost::system::error_code& t_errorCode) = 0;
 };
-using _service_ptr_t = std::shared_ptr<IService>;
+using _listener_ptr_t = std::shared_ptr<IListener>;
 
 enum class eLogLevel
 {
@@ -93,8 +93,10 @@ enum class eState
 class IController
 {
 public:
+	virtual ~IController() = default;
+
 	virtual bool HasService() = 0;
-	virtual void AttachService(IService* service) = 0;
+	virtual void AttachService(IListener* service) = 0;
 	virtual void DetachService() = 0;
 
 	virtual bool HasLogging() = 0;

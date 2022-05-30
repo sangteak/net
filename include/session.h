@@ -244,7 +244,7 @@ class Session : public boost::enable_shared_from_this<Session>, private boost::n
 	using _destroy_callback_t = std::function<void(const _sid_t& sid)>;
 
 public:
-	explicit Session(const _sid_t& sid, _io_context_t& t_ioContext, IService* t_service, ILogging* t_logging, IMonitor* t_monitor, _destroy_callback_t&& t_destroyCallback);
+	explicit Session(const _sid_t& sid, _io_context_t& t_ioContext, IListener* t_service, ILogging* t_logging, IMonitor* t_monitor, _destroy_callback_t&& t_destroyCallback);
 
 	inline _socket_t& getSocket() { return m_socket; }
 
@@ -327,15 +327,15 @@ private:
 
 	// 리드 버퍼
 	_read_buffer_t m_readBuffer;
-	StreamBuffer<> m_messageBuffer;
+	StreamBuffer<1024> m_messageBuffer;
 
 	// 쓰기 버퍼, 이중으로 되어 있음.
 	eWriteState m_writeState{ eWriteState::IDEL };
 	WriteQueue m_writeQueue;
 
 	// 서비스
-	//_service_ptr_t m_service;
-	IService* m_service;
+	//_listener_ptr_t m_service;
+	IListener* m_service;
 	ILogging* m_logging;
 	IMonitor* m_monitor;
 
@@ -353,7 +353,7 @@ public:
 	using _io_context_t = boost::asio::io_context;
 	using _session_map_t = std::map<_sid_t, _session_ptr_t>;
 	
-	bool Create(_io_context_t& t_ioContext, IService* t_service, ILogging* t_logging, IMonitor* t_monitor, _session_ptr_t& session);
+	bool Create(_io_context_t& t_ioContext, IListener* t_service, ILogging* t_logging, IMonitor* t_monitor, _session_ptr_t& session);
 
 	bool Lookup(const _sid_t& t_sid, _session_ptr_t& t_session);
 

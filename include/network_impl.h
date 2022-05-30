@@ -17,7 +17,7 @@ public:
 	static const int32_t DEFAULT_TOTAL_LENGTH = 0;
 	static const int32_t RESERVED_SPACE_SIZE = sizeof(DEFAULT_TOTAL_LENGTH);
 
-	using _size_t = int32_t;
+	using _size_t = size_t;
 
 	enum class eBufferType
 	{
@@ -58,7 +58,7 @@ public:
 		return m_offset;
 	}
 
-	virtual std::size_t Put(const void* data, const _size_t& length) override
+	virtual size_t Put(const void* data, const _size_t& length) override
 	{
 		if (m_maxLength < (m_offset + length))
 		{
@@ -74,7 +74,7 @@ public:
 
 	virtual void Commit() override
 	{
-		int32_t dataLength = m_offset - RESERVED_SPACE_SIZE;
+		int32_t dataLength = static_cast<int32_t>(m_offset - RESERVED_SPACE_SIZE);
 		memcpy(GetPointer(), &dataLength, sizeof(dataLength));
 	}
 
@@ -197,13 +197,14 @@ class NetworkImpl : public IController, private boost::noncopyable
 
 public:
 	explicit NetworkImpl(const int32_t numberOfThreads);
+	virtual ~NetworkImpl() = default;
 
 	virtual bool HasService() override
 	{
 		return (nullptr != m_service);
 	}
 
-	virtual void AttachService(IService* service) override;
+	virtual void AttachService(IListener* service) override;
 	virtual void DetachService() override;
 
 	virtual bool HasLogging() override
@@ -255,7 +256,7 @@ private:
 	_session_manager_ptr_t m_sessionManager;
 
 	IConfiguration* m_configuration = nullptr;
-	IService* m_service = nullptr;
+	IListener* m_service = nullptr;
 	ILogging* m_logging = nullptr;
 	IMonitor* m_monitor = nullptr;
 };

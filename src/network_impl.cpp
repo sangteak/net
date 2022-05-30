@@ -19,7 +19,7 @@ NetworkImpl::NetworkImpl(const int32_t numberOfThreads)
 		});
 }
 
-void NetworkImpl::AttachService(IService* service)
+void NetworkImpl::AttachService(IListener* service)
 {
 	if (nullptr == service)
 	{
@@ -208,7 +208,7 @@ void NetworkImpl::CreateWorkerThread()
 		return;
 	}
 
-	for (auto i = 0; i < m_numberOfThreads; ++i)
+	for (uint32_t i = 0; i < m_numberOfThreads; ++i)
 	{
 		m_threadGroup.emplace_back([this]() {
 			m_ioContext.run();

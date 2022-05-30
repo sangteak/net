@@ -34,7 +34,7 @@ public:
 	}
 };
 
-class GameClient : public net::IService, private boost::noncopyable
+class GameClient : public net::IListener, private boost::noncopyable
 {
 	using _controller_t = std::unique_ptr<net::IController>;
 
@@ -104,16 +104,14 @@ public:
 
 		int32_t dataLength = 5;
 		std::string data = "Hello";
-		auto p = data.data();
-		auto p2 = reinterpret_cast<const uint8_t*>(data.c_str());
-		auto len = data.length();
+		
 		memcpy(buf.get(), &dataLength, sizeof(dataLength));
 		memcpy(buf.get() + sizeof(dataLength), data.data(), dataLength);
 
 		m_controller->Write(sid, buf, sizeof(dataLength) + data.length());
 	}
 
-	virtual void OnClose(const net::_sid_t& sid, const boost::system::error_code& t_errorCode) override
+	virtual void OnClose(const net::_sid_t& sid, const boost::system::error_code&/*t_errorCode*/) override
 	{
 		std::cout << __FUNCTION__ << " - sid:" << sid << std::endl;
 	}
@@ -123,7 +121,7 @@ public:
 		std::cout << __FUNCTION__ << " - sid:" << sid << ", message=" << std::string(reinterpret_cast<const char*>(data), len) << std::endl;
 	}
 
-	virtual void OnError(const net::_sid_t& sid, const boost::system::error_code& t_errorCode) override
+	virtual void OnError(const net::_sid_t& sid, const boost::system::error_code& /*t_errorCode*/) override
 	{
 		std::cout << __FUNCTION__ << " - sid:" << sid << std::endl;
 	}
@@ -133,7 +131,7 @@ private:
 	Configuration m_configuration;
 };
 
-class GameServer : public net::IService, private boost::noncopyable
+class GameServer : public net::IListener, private boost::noncopyable
 {
 	class Configuration : public net::IConfiguration
 	{
@@ -190,10 +188,10 @@ public:
 
 	virtual void OnConnected(const net::_sid_t& sid) override
 	{
-		std::cout << __FUNCTION__ << std::endl;
+		std::cout << __FUNCTION__ << " - sid:" << sid << std::endl;
 	}
 
-	virtual void OnClose(const net::_sid_t& sid, const boost::system::error_code& t_errorCode) override
+	virtual void OnClose(const net::_sid_t& sid, const boost::system::error_code& /*t_errorCode*/) override
 	{
 		std::cout << __FUNCTION__ << " - sid:" << sid << std::endl;
 	}
@@ -209,7 +207,7 @@ public:
 		m_controller->Write(sid, wbuffer);
 	}
 
-	virtual void OnError(const net::_sid_t& sid, const boost::system::error_code& t_errorCode) override
+	virtual void OnError(const net::_sid_t& sid, const boost::system::error_code& /*t_errorCode*/) override
 	{
 		std::cout << __FUNCTION__ << " - sid:" << sid << std::endl;
 	}
@@ -333,7 +331,7 @@ int main(int argc, char* argv[])
 	auto service = std::make_shared<tcp::NetworkService>();
 	service->m_controller = controller.get();
 
-	controller->AttachService(std::static_pointer_cast<net::IService>(service));
+	controller->AttachService(std::static_pointer_cast<net::IListener>(service));
 	
 	controller->Connect("127.0.0.1", "20195");
 	{
